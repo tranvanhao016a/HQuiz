@@ -40,7 +40,8 @@ namespace BlazorQuiz.Api.Services
                 return new AuthResponseDto(default, "Invalid password");
             }
             var jwt = GenerateJwtToken(user);
-            return new AuthResponseDto(jwt, "Success");
+            var loggedInUser = new LoggedInUser(user.Id, user.Name, user.Role,jwt);
+            return new AuthResponseDto(loggedInUser);
 
         }
 

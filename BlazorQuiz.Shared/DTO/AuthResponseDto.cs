@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BlazorQuiz.Shared.DTO
 {
-   public record class AuthResponseDto(string Token, string? ErrorMessage = null)
+   public record class AuthResponseDto(LoggedInUser User, string? ErrorMessage = null)
     {
         [JsonIgnore]
         public bool HasError => ErrorMessage != null;

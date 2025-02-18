@@ -1,9 +1,13 @@
 ﻿@page "/auth/login"
 @layout EmptyLayout
 @inject IAuthApi AuthApi
+@using BlazorQuiz.Web.Auth
+
+@inject QuizAuthStateProvider QuizAuthStateProvider
 
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.Components.Forms
+@using System.Security.Claims
 
 <div class="container">
     <div class="row vh-100">
@@ -13,6 +17,19 @@
                     Login | Blazing Quiz
                 </h1>
             </div>
+            <AuthorizeView>
+                <Authorizing>
+                    <p> Authorizing....</p>
+                </Authorizing>
+                <NotAuthorized>
+                    <p>Not Authorized</p>
+                </NotAuthorized>
+                <Authorized>
+                    <p>
+                        Authorized : @context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
+                    </p>
+                </Authorized>
+            </AuthorizeView>
             <hr />
             <EditForm Model="_model" OnValidSubmit="LoginAsync">
                 <DataAnnotationsValidator/>
@@ -26,14 +43,14 @@
                     <InputText type="password" id="password" class="form-control" @bind-Value="_model.Password"/>
                     <ValidationMessage For="() => _model.Password"/>
                 </div>
-				@if (_error != null)
-				{
-					<div class="mb-3 bg-danger text-white p-2">
+                @if (_error != null)
+                {
+                    <div class="mb-3 bg-danger text-white p-2">
                         <p>
-							@_error
+                            @_error
                         </p>
                     </div>
-				}
+                }
                 <div class="mb-3">
                     @if (!_isBusy)
                     {
@@ -54,10 +71,20 @@
 @code {
     private LoginDto _model = new();
     private bool _isBusy;
-	private string? _error;
+    private string? _error;
+
+	protected override void OnInitialized()
+	{
+		if (QuizAuthStateProvider.IsLoggedIn)
+		{
+			NavigationManager.NavigateTo("/", replace:true);
+            
+		}
+	}
+
     private async Task LoginAsync()
     {
-		_error = null;
+        _error = null;
         _isBusy = true;
 
         try
@@ -65,11 +92,15 @@
             var authResponse = await AuthApi.LoginAsync(_model);
             if(authResponse.HasError)
             {
-				_error = authResponse.ErrorMessage;
-				return;
+                _error = authResponse.ErrorMessage;
+                return;
             }
-			//set the login token in some storage
-			NavigationManager.NavigateTo("/");
+            //set the login token in some storage
+
+            var loggedInUser = authResponse.User;
+            await QuizAuthStateProvider.SetLoginAsync(loggedInUser);
+            
+            NavigationManager.NavigateTo("/");
 
 			
 		}

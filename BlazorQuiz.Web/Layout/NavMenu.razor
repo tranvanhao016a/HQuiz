@@ -1,31 +1,61 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">BlazorQuiz.Web</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
+﻿@using BlazorQuiz.Shared
+@inject NavigationManager NavigationManager
+@inject QuizAuthStateProvider AuthStateProvider
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+@if (!AuthStateProvider.IsInitializing)
+{
+    <div class="top-row ps-3 navbar navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="">BlazorQuiz.Web</a>
+            <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
+    </div>
+
+    <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+        <nav class="flex-column">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                </NavLink>
+            </div>
+
+            <AuthorizeView>
+                <Authorized Context="authContext">
+                    <AuthorizeView Roles="@(nameof(UserRole.Admin))">
+                        <Authorized Context="adminContext">
+                            <div class="nav-item px-3">
+                                <NavLink class="nav-link" href="admin/manage-quizes">
+                                    <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Quizes
+                                </NavLink>
+                            </div>
+                            <div class="nav-item px-3">
+                                <NavLink class="nav-link" href="admin/add-quiz">
+                                    <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Add Quiz
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
+                    <AuthorizeView Roles="@(nameof(UserRole.Student))">
+                        <Authorized Context="studentContext">
+                            <div class="nav-item px-3">
+                                <NavLink class="nav-link" href="student/my-quizes">
+                                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Quizes
+                                </NavLink>
+                            </div>
+                        </Authorized>
+                    </AuthorizeView>
+                </Authorized>
+            </AuthorizeView>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" @onclick="Logout">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Logout
+                </NavLink>
+            </div>
+        </nav>
+    </div>
+}
 
 @code {
     private bool collapseNavMenu = true;
@@ -35,5 +65,11 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async Task Logout()
+    {
+        await AuthStateProvider.SetLogoutAsync();
+        NavigationManager.NavigateTo("auth/login", replace: true);
     }
 }

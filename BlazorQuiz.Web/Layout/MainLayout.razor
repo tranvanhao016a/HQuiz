@@ -10,7 +10,28 @@
         </div>
 
         <article class="content px-4">
-            @Body
+            @if (AuthStateProvider.IsInitializing)
+            {
+                <p>Initializing...</p>
+            }
+            else
+            {
+                @Body
+            }
         </article>
     </main>
 </div>
+
+
+
+
+
+
+@inject QuizAuthStateProvider AuthStateProvider
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthStateProvider.InitalizeAsync();
+    }
+}
