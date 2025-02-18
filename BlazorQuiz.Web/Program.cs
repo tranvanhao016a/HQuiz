@@ -12,13 +12,18 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddSingleton<QuizAuthStateProvider>();
-builder.Services.AddSingleton<AuthenticationStateProvider>(
-    sp=> sp.GetRequiredService<QuizAuthStateProvider>());
 
+
+builder.Services.AddSingleton<QuizAuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<QuizAuthStateProvider>());
+
+var app = builder.Build();
+
+// Initialize the authentication state provider
+var authStateProvider = app.Services.GetRequiredService<QuizAuthStateProvider>();
+await authStateProvider.InitializeAsync();
 builder.Services.AddAuthorizationCore();
 //builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
 
 ConfigureRefit(builder.Services);
 
@@ -28,6 +33,22 @@ static void ConfigureRefit(IServiceCollection services)
 {
     const string ApiBaseUrl = "https://localhost:7270";
     services.AddRefitClient<IAuthApi>()
-        .ConfigureHttpClient(httpClient => 
-        httpClient.BaseAddress = new Uri(ApiBaseUrl));
+        .ConfigureHttpClient(SetHttpClient);
+
+    services.AddRefitClient<ICategoryApi>(GetRefitSettings)
+         .ConfigureHttpClient(SetHttpClient);
+
+    static void SetHttpClient(HttpClient httpClient)
+    => httpClient.BaseAddress = new Uri(ApiBaseUrl);
+
+    static RefitSettings GetRefitSettings(IServiceProvider sp)
+    {
+        var authStateProvider = sp.GetRequiredService<QuizAuthStateProvider>();
+        return new RefitSettings
+        {
+            AuthorizationHeaderValueGetter = (_, __) 
+            => Task.FromResult(
+                authStateProvider.User?.Token ?? "")
+        };
+    }
 }

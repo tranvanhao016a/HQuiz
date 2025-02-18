@@ -59,7 +59,9 @@ builder.Services.AddCors(options =>
 
 
 builder.Services.AddTransient<AuthService>();
+builder.Services.AddTransient<CategoryService>();
 
+builder.Services.AddAuthorization();
 var app = builder.Build();
 
 #if DEBUG
@@ -74,9 +76,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
-app.UseAuthentication();
-//app.UseAuthorization();
-app.MapAuthEndpoints();
+app.UseAuthentication().UseAuthorization();
+app.MapAuthEndpoints()
+    .MapCatgoryEndpoints();
 
 app.Run();
 

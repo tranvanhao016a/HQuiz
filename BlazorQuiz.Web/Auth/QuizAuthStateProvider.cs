@@ -14,7 +14,6 @@ namespace BlazorQuiz.Web.Auth
         public IJSRuntime _jsRuntime;
         public QuizAuthStateProvider(IJSRuntime jSRuntime)
         {
-           
             _jsRuntime = jSRuntime;
             SetAuthStateTask();
         }
@@ -37,32 +36,41 @@ namespace BlazorQuiz.Web.Auth
             SetAuthStateTask();
             NotifyAuthenticationStateChanged(_authStateTask);
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", UserDataKey);
-
         }
+
         public bool IsInitializing { get; private set; } = true;
-        public async Task InitalizeAsync()
+        private bool _isInitialized = false;
+
+        public async Task InitializeAsync()
         {
+            if (_isInitialized) return;
+
             try
             {
+                Console.WriteLine("InitializeAsync started");
                 var udate = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", UserDataKey);
                 if (string.IsNullOrWhiteSpace(udate))
                 {
+                    Console.WriteLine("No user data found in localStorage");
                     return;
                 }
 
                 var user = LoggedInUser.LoadForm(udate);
                 if (user == null || user.Id == 0)
                 {
+                    Console.WriteLine("Invalid user data");
                     return;
                 }
                 await SetLoginAsync(user);
+                Console.WriteLine("User logged in");
             }
             finally
             {
                 IsInitializing = false;
+                _isInitialized = true;
+                Console.WriteLine("InitializeAsync completed");
             }
         }
-
 
         private void SetAuthStateTask()
         {

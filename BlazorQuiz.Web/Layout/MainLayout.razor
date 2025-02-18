@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -22,16 +23,11 @@
     </main>
 </div>
 
-
-
-
-
-
 @inject QuizAuthStateProvider AuthStateProvider
 
 @code {
     protected override async Task OnInitializedAsync()
     {
-        await AuthStateProvider.InitalizeAsync();
+        await AuthStateProvider.InitializeAsync();
     }
 }
