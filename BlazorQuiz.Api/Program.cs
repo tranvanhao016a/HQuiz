@@ -58,8 +58,9 @@ builder.Services.AddCors(options =>
 });
 
 
-builder.Services.AddTransient<AuthService>();
-builder.Services.AddTransient<CategoryService>();
+builder.Services.AddTransient<AuthService>()
+    .AddTransient<CategoryService>()
+    .AddTransient<QuizService>();
 
 builder.Services.AddAuthorization();
 var app = builder.Build();
@@ -78,7 +79,8 @@ app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication().UseAuthorization();
 app.MapAuthEndpoints()
-    .MapCatgoryEndpoints();
+    .MapCatgoryEndpoints()
+    .MapQuizEndpoints();
 
 app.Run();
 
