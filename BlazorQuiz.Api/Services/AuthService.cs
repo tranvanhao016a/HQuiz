@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using BlazorQuiz.Api.Data;
 using BlazorQuiz.Api.Data.Entities;
+using BlazorQuiz.Shared;
 using BlazorQuiz.Shared.DTO;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,10 @@ namespace BlazorQuiz.Api.Services
             {
                 return new AuthResponseDto(default, "Invalid username");
             }
-           var password= _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
+           if(!user.IsApproved)
+                return new AuthResponseDto(default, "Your account is not approved yet");
+
+            var password = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
 
             if (password == PasswordVerificationResult.Failed)
             {
@@ -43,6 +47,34 @@ namespace BlazorQuiz.Api.Services
             var loggedInUser = new LoggedInUser(user.Id, user.Name, user.Role,jwt);
             return new AuthResponseDto(loggedInUser);
 
+        }
+
+        public async Task<QuizApiResponse> RegisterAsync(RegisterDto dto)
+        {
+            if(await _context.Users.AnyAsync(u => u.Email == dto.Email))
+            {
+                return  QuizApiResponse.Fail("Email already exists. Try logging in ");
+            }
+            var user = new User
+            {
+                Email = dto.Email,
+                Name = dto.Name,
+                Phone = dto.Phone,
+                Role = nameof(UserRole.Student),
+                IsApproved = false
+            };
+            user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
+            _context.Users.Add(user);
+            try
+            {
+                await _context.SaveChangesAsync();
+                //send email verification link
+                return QuizApiResponse.Success;
+            }
+            catch (Exception ex)
+            {
+                return QuizApiResponse.Fail(ex.Message);
+            }   
         }
 
         private  string GenerateJwtToken(User user)

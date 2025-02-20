@@ -11,6 +11,13 @@ namespace BlazorQuiz.Api.Endpoints
 
             Results.Ok(await authService.LoginAsync(dto))
             );
+
+            app.MapPost("/api/auth/register", async (AuthService authService, RegisterDto dto) =>
+            {
+
+                return Results.Ok(await authService.RegisterAsync(dto));
+            });
+
             return app;
         }
     }

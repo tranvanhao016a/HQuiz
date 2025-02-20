@@ -23,5 +23,7 @@ namespace BlazorQuiz.Api.Data.Entities
 
         [MaxLength(50)]
         public string Role { get; set; } = nameof(UserRole.Student);
+
+        public bool IsApproved { get; set; }
     }
 }

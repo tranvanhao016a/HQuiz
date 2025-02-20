@@ -50,7 +50,7 @@ namespace BlazorQuiz.Api.Data.Migrations
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     TotalQuestions = table.Column<int>(type: "int", nullable: false),
                     TimeInMinutes = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    IsApproved = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
