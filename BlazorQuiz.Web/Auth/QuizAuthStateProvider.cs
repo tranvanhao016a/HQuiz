@@ -1,6 +1,8 @@
-﻿using System.Security.Claims;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.Json;
 using BlazorQuiz.Shared.DTO;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 
@@ -12,9 +14,12 @@ namespace BlazorQuiz.Web.Auth
         private const string UserDataKey = "udate";
         private Task<AuthenticationState> _authStateTask;
         public IJSRuntime _jsRuntime;
-        public QuizAuthStateProvider(IJSRuntime jSRuntime)
+        private readonly NavigationManager _navigationManager;
+
+        public QuizAuthStateProvider(IJSRuntime jSRuntime, NavigationManager navigationManager)
         {
             _jsRuntime = jSRuntime;
+            _navigationManager = navigationManager;
             SetAuthStateTask();
         }
         public override Task<AuthenticationState> GetAuthenticationStateAsync() => _authStateTask;
@@ -47,22 +52,33 @@ namespace BlazorQuiz.Web.Auth
 
             try
             {
-                Console.WriteLine("InitializeAsync started");
                 var udate = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", UserDataKey);
                 if (string.IsNullOrWhiteSpace(udate))
                 {
-                    Console.WriteLine("No user data found in localStorage");
+                    RedirectToLogin();
                     return;
                 }
 
                 var user = LoggedInUser.LoadForm(udate);
                 if (user == null || user.Id == 0)
                 {
-                    Console.WriteLine("Invalid user data");
+                    RedirectToLogin();
                     return;
                 }
+
+                // Check if JWT token is still valid
+                if (!IsTokenValid(user.Token))
+                {
+                    RedirectToLogin();
+                    return;
+                }
+
                 await SetLoginAsync(user);
-                Console.WriteLine("User logged in");
+               
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during initialization: {ex.Message}");
             }
             finally
             {
@@ -70,6 +86,31 @@ namespace BlazorQuiz.Web.Auth
                 _isInitialized = true;
                 Console.WriteLine("InitializeAsync completed");
             }
+        }
+
+        private void RedirectToLogin()
+        {
+           _navigationManager.NavigateTo("auth/login");
+        }
+
+        private static bool IsTokenValid(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return false;
+
+            var jwtHandler = new JwtSecurityTokenHandler();
+            if (!jwtHandler.CanReadToken(token))
+                return false;
+
+            var jwt = jwtHandler.ReadJwtToken(token);
+            var expClaim = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp);
+            if (expClaim == null)
+                return false;
+
+            var expTime = long.Parse(expClaim.Value);
+            var expDateTimeUtc = DateTimeOffset.FromUnixTimeSeconds(expTime).UtcDateTime;
+
+            return expDateTimeUtc > DateTime.UtcNow;
         }
 
         private void SetAuthStateTask()

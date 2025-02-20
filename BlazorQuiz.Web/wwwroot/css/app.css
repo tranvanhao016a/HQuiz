@@ -1,7 +1,10 @@
-html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+html, body * {
+    font-family: "Poppins", 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+html, body {
+    background-color: #ededf0;
+}
 h1:focus {
     outline: none;
 }

@@ -32,6 +32,11 @@ namespace BlazorQuiz.Api.Endpoints
                     return Results.Ok(await service.GetQuizQuestions(quizId));
                 });
 
+            quizgroup.MapGet("{quizId:guid}", async (Guid quizId, QuizService service) =>
+            {
+                 return Results.Ok(await service.GetQuizToEditAsync(quizId));
+            });
+
             return app;
         }
 

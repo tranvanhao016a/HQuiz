@@ -2,8 +2,13 @@
 
 @using System.Security.Claims
 @inject QuizAuthStateProvider QuizAuthStateProvider
-<PageTitle>Home</PageTitle>
+@using Microsoft.AspNetCore.Authorization
 
+@attribute [Authorize]
+@* <PageTitle>Home</PageTitle> *@
+<SectionContent SectionName="pageTitile">
+    Home
+</SectionContent>
 <h1>Hello, @(QuizAuthStateProvider.User?.Name ?? "Guest")</h1>
 
 Welcome to your new app.
