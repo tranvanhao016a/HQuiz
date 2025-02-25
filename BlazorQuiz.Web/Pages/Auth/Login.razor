@@ -75,14 +75,15 @@
     private bool _isBusy;
     private string? _error;
 
-	protected override void OnInitialized()
-	{
-		if (QuizAuthStateProvider.IsLoggedIn)
-		{
-			NavigationManager.NavigateTo("/", replace:true);
-            
-		}
-	}
+    protected override void OnInitialized()
+    {
+        if (QuizAuthStateProvider.IsLoggedIn)
+        {
+            // NavigationManager.NavigateTo("/", replace:true);
+            RedirectToHome(replace:true);
+
+        }
+    }
 
     private async Task LoginAsync()
     {
@@ -91,7 +92,7 @@
 
         try
         {
-			AppState.ShowLoader("Logging in...");
+            AppState.ShowLoader("Logging in...");
             var authResponse = await AuthApi.LoginAsync(_model);
             if(authResponse.HasError)
             {
@@ -102,20 +103,31 @@
 
             var loggedInUser = authResponse.User;
             await QuizAuthStateProvider.SetLoginAsync(loggedInUser);
-            
-            NavigationManager.NavigateTo("/");
 
-			
-		}
-		catch (Exception ex)
-		{
-			_error = ex.Message;
-		}
-		finally
-		{
-			_isBusy = false;
-			AppState.HideLoader();
-		}
-	}
+            RedirectToHome();
+
+
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+            AppState.HideLoader();
+        }
+    }
+    private void RedirectToHome(bool replace= false)
+    {
+        var redirectTo = QuizAuthStateProvider.User.Role switch
+        {
+
+            nameof(UserRole.Student) => "student/home",
+            _ => "/"
+        };
+
+        NavigationManager.NavigateTo(redirectTo, replace);
+    }
 }
 }

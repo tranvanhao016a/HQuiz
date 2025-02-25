@@ -74,6 +74,7 @@ namespace BlazorQuiz.Api.Services
                 .FirstOrDefaultAsync();
 
 
+
         public async Task<CategoryDto> UpdateCategoryAsync(int id, CategoryDto dto)
         {
             var category = await _context.Categories.FindAsync(id);
