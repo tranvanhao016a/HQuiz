@@ -1,5 +1,6 @@
 ﻿@page "/admin/add-quiz"
 @page "/admin/edit-quiz/{quizId:guid?}"
+@inject IAppState AppState
 @using BlazorQuiz.Shared.DTO
 @inject IQuizApi QuizApi
 @inject ICategoryApi CategoryApi
@@ -54,7 +55,7 @@
         <hr class="my-2" />
         <h3 class="fw-bold">Questions</h3>
         <ol class="mb-0
-">
+        ">
             @foreach (var question in _quiz.Questions)
             {
                 <li class="p-3 mb-3 bg-white">
@@ -68,9 +69,9 @@
                                 <div class="input-group">
                                     <div class="input-group-text">
                                         <input class="form-check-input mt-0" type="radio"
-                                               name="option_radio_@ramdom"
-                                               checked="@option.IsCorrect"
-                                               @onchange="()=> SetOptionAsCorrectAnswer(question,option)">
+                                        name="option_radio_@ramdom"
+                                        checked="@option.IsCorrect"
+                                        @onchange="()=> SetOptionAsCorrectAnswer(question,option)">
                                     </div>
                                     <input type="text" @bind="option.Text" class="form-control">
                                     <button class="btn btn-danger" type="button" @onclick="()=>question.Options.Remove(option)">X</button>
@@ -90,19 +91,19 @@
             <button class="btn btn-info" type="button" @onclick="()=> _quiz.Questions.Add(GetDefaultEmptyQuestion())">+Add Question</button>
         </div>
         <hr />
-       <div class="row mb-5 align-content-center">
-           <div class="col-sm-3 ms-auto d-flex justify-content-end">
+        <div class="row mb-5 align-content-center">
+            <div class="col-sm-3 ms-auto d-flex justify-content-end">
                 <div class="form-check form-switch">
                     <InputCheckbox @bind-Value="_quiz.IsActive" class="form-check-input" type="checkbox" role="switch" id="quizIsActive" checked />
                     <label class="form-check-label" for="quizIsActive">Is Active?</label>
                 </div>
-           </div>
+            </div>
             <div class="col-sm-5 d-grid me-auto">
                 <button type="submit" class="btn btn-success">Save Quiz</button>
             </div>
-           
-       </div>
-        
+
+        </div>
+
     </div>
 </EditForm>
 
@@ -116,10 +117,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // AppState.ShowLoader("Fetching categories");
         _categories = await CategoryApi.GetAllCategoriesAsync();
         if (IsEditCase)
         {
+            AppState.ShowLoader("Fetching quiz");
             var quiz = await QuizApi.GetQuizToEditAsync(QuizId!.Value);
+            AppState.HideLoader();
             if (quiz == null)
             {
                 NavigationManager.NavigateTo("/admin/manage-quizes");
@@ -133,6 +137,7 @@
             var question = GetDefaultEmptyQuestion();
             _quiz.Questions = new List<QuestionDto> { question };
         }
+		
     }
 
 	protected override void OnParametersSet()
@@ -168,7 +173,9 @@
             await ShowAlertAsync(errorMessages);
             return;
         }
+		AppState.ShowLoader("Saving quiz");
         var response = await QuizApi.SaveQuizAsync(_quiz);
+		AppState.HideLoader();
         if (!response.IsSuccess)
         {
             await ShowAlertAsync(response.ErrorMessage);

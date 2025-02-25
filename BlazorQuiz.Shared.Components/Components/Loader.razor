@@ -1,0 +1,28 @@
+﻿@inject IAppState AppState
+
+@if (AppState.LoadingText != null)
+{
+    <div class="fullscreen d-flex justify-content-center align-items-center">
+        <div class="overlay">
+            <div class="bg-white p-3 shadow">
+                <span class="h5">
+                    @AppState.LoadingText...
+                </span>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        //Deloy 500
+
+        AppState.OnToggleLoader += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        AppState.OnToggleLoader -= StateHasChanged;
+    }
+}

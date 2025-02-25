@@ -1,6 +1,7 @@
 ﻿@page "/admin/manage-categories"
-
+@inject IAppState AppState
 @inject ICategoryApi CategoryApi
+
 <SectionContent SectionName="pageTitle">
     Manage Categories
 </SectionContent>
@@ -12,7 +13,7 @@
                 <div class="bg-white p-3">
                     <div class="">
                         <h5 class="m-0 fw-bold">Add/Edit Category</h5>
-						<hr />
+                        <hr />
                     </div>
                     <div class="">
                         <div class="mb-3">
@@ -20,32 +21,29 @@
                             <InputText id="categoryName" class="form-control" @bind-Value="_category.Name" />
                             <ValidationMessage For="@(() => _category.Name)" />
                         </div>
-						@if (_errorMessage != null)
-						{
-							<div class="mb-3 border border-danger border-1 d-flex justify-content-between gap-2 align-items-start">
+                        @if (_errorMessage != null)
+                        {
+                            <div class="mb-3 border border-danger border-1 d-flex justify-content-between gap-2 align-items-start">
                                 <p class="m-0"> @_errorMessage</p>
                                 <button type="button" class="btn btn-sm btn-danger" @onclick="()=> _errorMessage = null">
-
+                                    Close
                                 </button>
                             </div>
-						}
-                     </div>
-					
-                        <div class="d-flex justify-content-between align-items-center">
-							@if (!_isBusy)
-							{
-                                <button type="submit" class="btn btn-sm btn-success">Save Category</button>
-                                <button type="button" class="btn btn-sm btn-danger" @onclick="()=>_category = new()">Cancel</button>
-							}
-							else
-							{
-                                <button type="button"  class="btn btn-sm btn-secondary">Saving Category...</button>
-                                <button type="button" disabled class="btn btn-sm btn-secondary">Cancel</button>
-							}
-                            
-                        </div>
-                   
-                       
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        @if (!_isBusy)
+                        {
+                            <button type="submit" class="btn btn-sm btn-success">Save Category</button>
+                            <button type="button" class="btn btn-sm btn-danger" @onclick="()=>_category = new()">Cancel</button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-sm btn-secondary">Saving Category...</button>
+                            <button type="button" disabled class="btn btn-sm btn-secondary">Cancel</button>
+                        }
+                    </div>
                 </div>
             </EditForm>
         </div>
@@ -93,13 +91,16 @@
 @code {
     private CategoryDto[] _categories = [];
     private CategoryDto _category = new();
-	private bool _isBusy;
-	private string? _errorMessage;
+    private bool _isBusy;
+    private string? _errorMessage;
     protected override async Task OnInitializedAsync() => await LoadCategoriesAsync();
 
     private async Task LoadCategoriesAsync()
     {
+        AppState.ShowLoader("Fetching categories");
+        await Task.Delay(1000);
         _categories = await CategoryApi.GetAllCategoriesAsync();
+        AppState.HideLoader();
     }
 
     private void EditCategory(CategoryDto category)
@@ -111,11 +112,12 @@
     {
         try
         {
-			_isBusy = true;
+            AppState.ShowLoader("Saving category");
+            _isBusy = true;
             var response = await CategoryApi.CreatedCategoryAsync(_category);
             if (!response.IsSuccess)
             {
-				_errorMessage = response.ErrorMessage ?? "Unknown error in saving category";
+                _errorMessage = response.ErrorMessage ?? "Unknown error in saving category";
                 return;
             }
             _category = new();
@@ -123,11 +125,12 @@
         }
         catch (Exception ex)
         {
-			_errorMessage = ex.Message;
+            _errorMessage = ex.Message;
         }
-		finally
-		{
-			_isBusy = false;
+        finally
+        {
+            AppState.HideLoader();
+            _isBusy = false;
         }
     }
 }

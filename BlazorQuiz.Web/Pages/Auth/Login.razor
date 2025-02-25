@@ -2,7 +2,8 @@
 @layout EmptyLayout
 @inject IAuthApi AuthApi
 @using BlazorQuiz.Web.Auth
-
+@using BlazorQuiz.Shared
+@inject IAppState AppState
 @inject QuizAuthStateProvider QuizAuthStateProvider
 
 @inject NavigationManager NavigationManager
@@ -90,6 +91,7 @@
 
         try
         {
+			AppState.ShowLoader("Logging in...");
             var authResponse = await AuthApi.LoginAsync(_model);
             if(authResponse.HasError)
             {
@@ -112,6 +114,7 @@
 		finally
 		{
 			_isBusy = false;
+			AppState.HideLoader();
 		}
 	}
 }

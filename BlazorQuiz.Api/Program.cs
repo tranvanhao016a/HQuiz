@@ -22,14 +22,13 @@ builder.Services.AddDbContext<QuizContext>(options =>
     options.UseSqlServer(connectionString);
 });
 
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-   var secretKey = builder.Configuration.GetValue<string>("Jwt:Secret");
+    var secretKey = builder.Configuration.GetValue<string>("Jwt:Secret");
     var symmetriKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -40,7 +39,6 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
         IssuerSigningKey = symmetriKey
     };
-
 });
 
 builder.Services.AddCors(options =>
@@ -57,10 +55,10 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 builder.Services.AddTransient<AuthService>()
     .AddTransient<CategoryService>()
-    .AddTransient<QuizService>();
+    .AddTransient<QuizService>()
+    .AddTransient<UserService>();
 
 builder.Services.AddAuthorization();
 var app = builder.Build();
@@ -80,7 +78,8 @@ app.UseCors();
 app.UseAuthentication().UseAuthorization();
 app.MapAuthEndpoints()
     .MapCatgoryEndpoints()
-    .MapQuizEndpoints();
+    .MapQuizEndpoints()
+    .MapUserEndpoints();
 
 app.Run();
 

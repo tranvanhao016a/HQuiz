@@ -1,3 +1,4 @@
+using BlazorQuiz.Shared;
 using BlazorQuiz.Web;
 using BlazorQuiz.Web.Apis;
 using BlazorQuiz.Web.Auth;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Refit;
+
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -14,6 +16,8 @@ builder.Services.AddSingleton<QuizAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<QuizAuthStateProvider>());
 
 builder.Services.AddAuthorizationCore();
+
+builder.Services.AddSingleton<IAppState, AppState>();
 
 ConfigureRefit(builder.Services);
 
@@ -36,6 +40,9 @@ static void ConfigureRefit(IServiceCollection services)
 
     services.AddRefitClient<IQuizApi>(GetRefitSettings)
          .ConfigureHttpClient(SetHttpClient);
+
+    services.AddRefitClient<IUserApi>(GetRefitSettings)
+        .ConfigureHttpClient(SetHttpClient);
 
     static void SetHttpClient(HttpClient httpClient)
     => httpClient.BaseAddress = new Uri(ApiBaseUrl);
