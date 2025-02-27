@@ -5,6 +5,7 @@
 @inject IStudentQuizApi StudentQuizApi
 @inject NavigationManager NavigationManager
 @inject QuizState QuizState
+
 <SectionContent SectionName="pageTitle">
     Home
 </SectionContent>
@@ -26,7 +27,7 @@
     </div>
 
     <div class="row">
-        @if ( _isLoading && _quizes.Length == 0)
+        @if (_isLoading && _quizes.Length == 0)
         {
             var message = _selectedCategoryId == 0 ?
             "There are no active quizzes right now" :
@@ -88,12 +89,14 @@
         }
     </div>
 </div>
-@if(_startingQuiz != null)
+
+@if (_startingQuiz != null)
 {
-    var title = $"Start {_startingQuiz}";
-    <Modal Title="@title" OnCancelClick="() => _startingQuiz = null" OnActionButtonClick="StartQuiz">
+    var title = $"Start {_startingQuiz.Name}";
+    <Modal Title="@title" OnCancelClick="() => _startingQuiz = null"
+           OnActionButtonClick="StartQuizAsync">
         <p class="m-0 p-3">
-            Do you want to start this quiz?<br/> You will not be able to pause the quiz.
+            Do you want to start this quiz?<br /> You will not be able to pause the quiz.
         </p>
     </Modal>
 }
@@ -104,6 +107,7 @@
     private int _selectedCategoryId = 0; // Default category ID
     private bool _isLoading;
     private QuizListDto? _startingQuiz;
+
     protected override async Task OnInitializedAsync()
     {
         AppState.ShowLoader("Fetching categories and quizzes");
@@ -126,7 +130,6 @@
         }
         finally
         {
-
             AppState.HideLoader();
             _isLoading = false;
         }
@@ -138,10 +141,31 @@
         _quizes = await StudentQuizApi.GetActiveQuizesAsync(_selectedCategoryId);
         AppState.HideLoader();
     }
-    private void StartQuiz()
+
+    private async Task StartQuizAsync()
     {
         // Redirect to the quiz page
-        QuizState.SetQuiz(_startingQuiz);
-        NavigationManager.NavigateTo($"/student/quiz/");
-	}
+        AppState.ShowLoader("Preparing the quiz");
+        try
+        {
+            QuizApiResponse<int> response = await StudentQuizApi.StartQuizAsync(_startingQuiz.Id);
+            if (!response.IsSuccess)
+            {
+                // Show error alert
+                Console.WriteLine("Error starting quiz: " + response.ErrorMessage);
+                return;
+            }
+            int studentQuizId = response.Data;
+            QuizState.StartQuiz(_startingQuiz, studentQuizId);
+            NavigationManager.NavigateTo("/student/quiz");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            AppState.HideLoader();
+        }
+    }
 }

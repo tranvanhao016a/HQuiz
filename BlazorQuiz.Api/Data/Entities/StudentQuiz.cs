@@ -16,6 +16,12 @@ namespace BlazorQuiz.Api.Data.Entities
 
         public DateTime? CompletedOn { get; set; }
 
+        [AllowedValues(
+            nameof(StudentQuizStats.Started),
+            nameof(StudentQuizStats.Completed),
+            nameof(StudentQuizStats.AutoSubmitted),
+            nameof(StudentQuizStats.Expired))]
+        public string Status { get; set; } = nameof(StudentQuizStats.Started);
         public int Score { get; set; }
 
         [ForeignKey(nameof(StudentId))]
@@ -23,5 +29,7 @@ namespace BlazorQuiz.Api.Data.Entities
 
         [ForeignKey(nameof(QuizId))]
         public virtual Quiz Quiz { get; set; }
+
+        public virtual ICollection<StudentQuizQuestion> StudentQuizQuestion { get; set; } = [];
     }
 }

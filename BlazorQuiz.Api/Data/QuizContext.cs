@@ -22,6 +22,8 @@ namespace BlazorQuiz.Api.Data
         public DbSet<Option> Options { get; set; }
         public DbSet<User> Users { get; set; }
 
+        public DbSet<StudentQuizQuestion> StudentQuestions { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.ConfigureWarnings(warnings =>
@@ -31,6 +33,19 @@ namespace BlazorQuiz.Api.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<StudentQuizQuestion>().HasKey(s=> new
+            {
+                s.StudentQuizId, s.QuestionId
+            });
+            modelBuilder.Entity<StudentQuizQuestion>()
+                .HasOne(s => s.StudentQuiz)
+                .WithMany(s => s.StudentQuizQuestion)
+                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<StudentQuizQuestion>()
+                .HasOne(s => s.Question)
+                .WithMany(s => s.StudentQuizQuestion)
+                .OnDelete(DeleteBehavior.NoAction);
+
             base.OnModelCreating(modelBuilder);
 
             var adminUser = new User

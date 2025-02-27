@@ -1,20 +1,61 @@
-﻿using BlazorQuiz.Api.Services;
+﻿using System.Security.Claims;
+using BlazorQuiz.Api.Services;
 using BlazorQuiz.Shared;
+using BlazorQuiz.Shared.DTO;
+using Microsoft.AspNetCore.Identity;
 
 namespace BlazorQuiz.Api.Endpoints
 {
     public static class StudentQuizEndpoints
     {
+        public static int GetStudentId(this ClaimsPrincipal principal)
+            => Convert.ToInt32(principal.FindFirstValue(ClaimTypes.NameIdentifier));
+
         public static IEndpointRouteBuilder MapStudentQuizEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("api/student")
-                .RequireAuthorization(p=>p.RequireRole(nameof(UserRole.Student)));
-            group.MapGet("/available-quizes", async (int categoryId, StudentQuizService service) =>
+                .RequireAuthorization(p => p.RequireRole(nameof(UserRole.Student)));
 
+            group.MapGet("/available-quizes", async (int categoryId, StudentQuizService service) =>
             {
-               return Results.Ok(await service.GetActiveQuizesAsync(categoryId));
+                return Results.Ok(await service.GetActiveQuizesAsync(categoryId));
             });
-            
+
+            var quizGroup = group.MapGroup("quiz");
+
+            quizGroup.MapPost("{quizId:guid}/start", async (Guid quizId, ClaimsPrincipal principal, StudentQuizService service) =>
+            {
+                return Results.Ok(await service.StartQuizAsync(principal.GetStudentId(), quizId));
+            });
+
+            quizGroup.MapGet("{studentQuizId:int}/next-question", async (int studentQuizId, ClaimsPrincipal principal, StudentQuizService service) =>
+            {
+                return Results.Ok(await service.GetNextQuestionForQuizAsync(studentQuizId, principal.GetStudentId()));
+            });
+
+            quizGroup.MapPost("{studentQuizId:int}/save-response", async (int studentQuizId, StudentQuizQuestionResponseDto dto, ClaimsPrincipal principal, StudentQuizService service) =>
+            {
+                if (dto.StudentQuizId != studentQuizId)
+                {
+                    return Results.Unauthorized();
+                }
+                return Results.Ok(await service.SaveQuestionResponseAsync(dto, principal.GetStudentId()));
+            });
+
+            quizGroup.MapPost("{studentQuizId:int}/submit", async (int studentQuizId, ClaimsPrincipal principal, StudentQuizService service) =>
+            {
+                return Results.Ok(await service.SubmitQuizAsync(studentQuizId, principal.GetStudentId()));
+            });
+
+            quizGroup.MapPost("{studentQuizId:int}/auto-submit", async (int studentQuizId, ClaimsPrincipal principal, StudentQuizService service) =>
+            {
+                return Results.Ok(await service.AutoSubmitQuizAsync(studentQuizId, principal.GetStudentId()));
+            });
+
+            quizGroup.MapPost("{studentQuizId:int}/exit", async (int studentQuizId, ClaimsPrincipal principal, StudentQuizService service) =>
+            {
+                return Results.Ok(await service.ExitQuizAsync(studentQuizId, principal.GetStudentId()));
+            });
 
             return app;
         }
