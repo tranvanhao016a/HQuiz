@@ -110,7 +110,7 @@ namespace BlazorQuiz.Web.Auth
             var expTime = long.Parse(expClaim.Value);
             var expDateTimeUtc = DateTimeOffset.FromUnixTimeSeconds(expTime).UtcDateTime;
 
-            return expDateTimeUtc > DateTime.UtcNow;
+            return expDateTimeUtc > DateTime.Now;
         }
 
         private void SetAuthStateTask()

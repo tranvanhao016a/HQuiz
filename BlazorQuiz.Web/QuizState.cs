@@ -11,5 +11,7 @@ namespace BlazorQuiz.Web
         
          =>  (Quiz, StudentQuizId) = (quiz, studentQuizId);
 
+        public void StopQuiz()
+       => (Quiz, StudentQuizId) = (null, 0);
     }
 }

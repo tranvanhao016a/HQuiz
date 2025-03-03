@@ -45,7 +45,7 @@ namespace BlazorQuiz.Api.Services
                     StudentId = studentId,
                     QuizId = quizId,
                     Status = nameof(StudentQuizStats.Started),
-                    StartedOn = DateTime.UtcNow,
+                    StartedOn = DateTime.Now,
                 };
                 _context.StudentQuizzes.Add(studentQuiz);
                 await _context.SaveChangesAsync();
@@ -126,7 +126,7 @@ namespace BlazorQuiz.Api.Services
             {
                 return QuizApiResponse.Fail("Quiz does not exist");
             }
-            if (studentQuiz.Id != studentId)
+            if (studentQuiz.StudentId != studentId)
             {
                 return QuizApiResponse.Fail("Invalid request");
             }
@@ -149,21 +149,18 @@ namespace BlazorQuiz.Api.Services
             }
             return QuizApiResponse.Success;
         }
-        
+
         public async Task<QuizApiResponse> SubmitQuizAsync(int studentQuizId, int studentId)
-        
-       => await CompleteQuizAsync(studentQuizId, DateTime.UtcNow, nameof(StudentQuizStats.Completed), studentId);
+      => await CompleteQuizAsync(studentQuizId, DateTime.Now, nameof(StudentQuizStats.Completed), studentId);
 
-        public async Task<QuizApiResponse>ExitQuizAsync(int studentQuizId, int studentId)
-        => await CompleteQuizAsync(studentQuizId, null, nameof(StudentQuizStats.Expired), studentId);
-
+        public async Task<QuizApiResponse> ExitQuizAsync(int studentQuizId, int studentId)
+            => await CompleteQuizAsync(studentQuizId, null, nameof(StudentQuizStats.Expired), studentId);
 
         public async Task<QuizApiResponse> AutoSubmitQuizAsync(int studentQuizId, int studentId)
-       => await CompleteQuizAsync(studentQuizId, DateTime.UtcNow, nameof(StudentQuizStats.AutoSubmitted), studentId);
+            => await CompleteQuizAsync(studentQuizId, DateTime.Now, nameof(StudentQuizStats.AutoSubmitted), studentId);
 
         private async Task<QuizApiResponse> CompleteQuizAsync(int studentQuizId, DateTime? completeOn, string status, int studentId)
         {
-
             var studentQuiz = await _context.StudentQuizzes
                 .AsTracking()
                 .FirstOrDefaultAsync(s => s.Id == studentQuizId);
@@ -171,12 +168,11 @@ namespace BlazorQuiz.Api.Services
             {
                 return QuizApiResponse.Fail("Quiz does not exist");
             }
-            if (studentQuiz.Id != studentId)
+            if (studentQuiz.StudentId != studentId)
             {
                 return QuizApiResponse.Fail("Invalid request");
             }
-            if (studentQuiz.CompletedOn.HasValue || studentQuiz.Status ==
-                nameof(StudentQuizStats.Expired))
+            if (studentQuiz.CompletedOn.HasValue || studentQuiz.Status == nameof(StudentQuizStats.Expired))
             {
                 return QuizApiResponse.Fail("Quiz already submitted");
             }
@@ -184,11 +180,11 @@ namespace BlazorQuiz.Api.Services
             {
                 studentQuiz.Status = status;
                 studentQuiz.CompletedOn = completeOn;
-                var StudentQuizQuestion = await _context.StudentQuestions
+                var studentQuizQuestions = await _context.StudentQuestions
                     .Where(s => s.StudentQuizId == studentQuizId)
                     .ToListAsync();
 
-                _context.StudentQuestions.RemoveRange(StudentQuizQuestion);
+                _context.StudentQuestions.RemoveRange(studentQuizQuestions);
                 await _context.SaveChangesAsync();
 
                 return QuizApiResponse.Success;
@@ -197,7 +193,33 @@ namespace BlazorQuiz.Api.Services
             {
                 return QuizApiResponse.Fail(ex.Message);
             }
+        }
 
+
+        public async Task<PagedResult<StudentQuizDto>> GetStudentQuizAsync(int  studentId,int startIndex, int pageSize )
+        {
+            var query = _context.StudentQuizzes.Where(
+                p=> p.StudentId == studentId);
+
+            var count = await query.CountAsync();
+
+            var quizes = await query.OrderByDescending(q => q.StartedOn)
+                .Skip(startIndex)
+                .Take(pageSize)
+                .Select(q => new StudentQuizDto
+                {
+                    Id = q.Id,
+                    QuizId = q.QuizId,
+                    QuizName = q.Quiz.Name,
+                    CategoryName = q.Quiz.Category.Name,
+                    StartedOn = q.StartedOn,
+                    CompletedOn = q.CompletedOn,
+                    Status = q.Status,
+                    Score = q.Score
+                })
+                .ToArrayAsync();
+
+            return new PagedResult<StudentQuizDto>(quizes, count);
         }
 
     }

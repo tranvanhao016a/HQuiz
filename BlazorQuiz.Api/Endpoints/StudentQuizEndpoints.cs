@@ -3,6 +3,7 @@ using BlazorQuiz.Api.Services;
 using BlazorQuiz.Shared;
 using BlazorQuiz.Shared.DTO;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorQuiz.Api.Endpoints
 {
@@ -21,6 +22,9 @@ namespace BlazorQuiz.Api.Endpoints
                 return Results.Ok(await service.GetActiveQuizesAsync(categoryId));
             });
 
+            group.MapGet("/my-quizes", async (int startIndex, int pageSize, StudentQuizService service, ClaimsPrincipal principal)
+                => Results.Ok(await service.GetStudentQuizAsync(principal.GetStudentId(),  startIndex, pageSize)));
+
             var quizGroup = group.MapGroup("quiz");
 
             quizGroup.MapPost("{quizId:guid}/start", async (Guid quizId, ClaimsPrincipal principal, StudentQuizService service) =>
@@ -37,6 +41,7 @@ namespace BlazorQuiz.Api.Endpoints
             {
                 if (dto.StudentQuizId != studentQuizId)
                 {
+                    Console.WriteLine(dto.StudentQuizId);
                     return Results.Unauthorized();
                 }
                 return Results.Ok(await service.SaveQuestionResponseAsync(dto, principal.GetStudentId()));
