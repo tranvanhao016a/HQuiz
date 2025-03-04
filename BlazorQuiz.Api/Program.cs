@@ -20,6 +20,12 @@ builder.Services.AddDbContext<QuizContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Quiz");
     options.UseSqlServer(connectionString);
+}, optionsLifetime:ServiceLifetime.Singleton);
+
+builder.Services.AddDbContextFactory<QuizContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("Quiz");
+    options.UseSqlServer(connectionString);
 });
 
 builder.Services.AddAuthentication(options =>
@@ -58,8 +64,17 @@ builder.Services.AddCors(options =>
 builder.Services.AddTransient<AuthService>()
     .AddTransient<CategoryService>()
     .AddTransient<QuizService>()
-    .AddTransient<UserService>()
+    .AddTransient<AdminService>()
     .AddTransient<StudentQuizService>();
+
+//builder.Services.AddSingleton<Func<QuizContext>>(sp => () =>
+//{
+//    var scope = sp.CreateScope();
+//    return scope.ServiceProvider.GetRequiredService<QuizContext>();
+//}
+
+//);
+
 
 builder.Services.AddAuthorization();
 var app = builder.Build();
@@ -80,7 +95,7 @@ app.UseAuthentication().UseAuthorization();
 app.MapAuthEndpoints()
     .MapCatgoryEndpoints()
     .MapQuizEndpoints()
-    .MapUserEndpoints()
+    .MapAdminEndpoints()
     .MapStudentQuizEndpoints();
 
 app.Run();

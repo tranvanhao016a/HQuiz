@@ -16,16 +16,16 @@
 
     <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
         <nav class="flex-column">
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
-                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-                </NavLink>
-            </div>
 
             <AuthorizeView>
                 <Authorized Context="authContext">
                     <AuthorizeView Roles="@(nameof(UserRole.Admin))">
                         <Authorized Context="adminContext">
+                            <div class="nav-item px-3">
+                                <NavLink class="nav-link" href="admin/home" Match="NavLinkMatch.All">
+                                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                                </NavLink>
+                            </div>
                             <div class="nav-item px-3">
                                 <NavLink class="nav-link" href="admin/manage-categories">
                                     <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Manage Categories
@@ -51,12 +51,18 @@
                     <AuthorizeView Roles="@(nameof(UserRole.Student))">
                         <Authorized Context="studentContext">
                             <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
+                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                        </NavLink>
+                    </div>
+                            <div class="nav-item px-3">
                                 <NavLink class="nav-link" href="student/my-quizes">
                                     <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Quizes
                                 </NavLink>
                             </div>
                         </Authorized>
                     </AuthorizeView>
+                    
                     <div class="nav-item px-3">
                         <a role="button" class="nav-link" @onclick="Logout">
                             Logout

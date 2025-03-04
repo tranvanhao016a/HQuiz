@@ -1,6 +1,6 @@
 ﻿@page "/admin/manage-students"
 
-@inject IUserApi UserApi
+@inject IAdminApi UserApi
 @inject IAppState AppState
 
 <SectionContent SectionName="pageTitle">
@@ -30,7 +30,7 @@
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" role="switch"
                        id="@context.Id"
-                       @onchange="() => OnUserApprovedToggleAsync(context)"
+                       @onchange="async () => await OnUserApprovedToggleAsync(context)"
                        checked="@context.IsApproved" />
 
                 <label class="form-check-label" for="@context.Id">
@@ -38,6 +38,7 @@
                 </label>
             </div>
         </TemplateColumn>
+
     </QuickGrid>
     <Paginator State="_paginationState" />
 </div>

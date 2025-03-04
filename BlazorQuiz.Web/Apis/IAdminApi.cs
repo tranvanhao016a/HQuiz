@@ -3,12 +3,14 @@ using BlazorQuiz.Shared;
 using Refit;
 
 [Headers("Authorization: Bearer")]
-public interface IUserApi
+public interface IAdminApi
 {
     [Get("/api/users")]
     Task<PagedResult<UserDto>> GetUsersAsync(UserApprovedFilter filter, int startIndex, int pageSize);
 
-    [Patch("/api/users/toggle-status")]
-    Task ToggleUserApprovedStatus([Query] int userId);
+    [Patch("/api/users/{userId}/toggle-status")]
+    Task ToggleUserApprovedStatus(int userId);
 
+    [Get("/api/admin/home-data")]
+    Task<AdminHomeDateDto> GetHomeDataAsync();
 }

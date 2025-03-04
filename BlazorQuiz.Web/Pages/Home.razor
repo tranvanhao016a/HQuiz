@@ -3,37 +3,24 @@
 @using System.Security.Claims
 @inject QuizAuthStateProvider QuizAuthStateProvider
 @using Microsoft.AspNetCore.Authorization
+@using BlazorQuiz.Shared
 
 @attribute [Authorize]
-@* <PageTitle>Home</PageTitle> *@
+
 <SectionContent SectionName="pageTitile">
     Home
 </SectionContent>
-<h1>Hello, @(QuizAuthStateProvider.User?.Name ?? "Guest")</h1>
-
-Welcome to your new app.
-
 <AuthorizeView>
-    <Authorizing>
-        <p> Authorizing....</p>
-    </Authorizing>
-    <NotAuthorized>
-        <p>Not Authorized</p>
-    </NotAuthorized>
-
     <Authorized>
-        <p>
-            Authorized : @context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
-        </p>
+		<AuthorizeView Roles="@nameof(UserRole.Student)" Context="studentContext">
+			<RedirectToHome Url="/student/home" />
+        </AuthorizeView>
+        <AuthorizeView Roles="@nameof(UserRole.Admin)" Context="adminContext">
+            <RedirectToHome Url="/admin/home" />
+        </AuthorizeView>
     </Authorized>
 </AuthorizeView>
 
 @code {
-    protected override async Task OnInitializedAsync()
-    {
-        while (QuizAuthStateProvider.IsInitializing)
-        {
-            await Task.Delay(500);
-        }
-    }
+
 }

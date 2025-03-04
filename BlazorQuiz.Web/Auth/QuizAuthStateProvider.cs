@@ -22,6 +22,7 @@ namespace BlazorQuiz.Web.Auth
             _navigationManager = navigationManager;
             SetAuthStateTask();
         }
+
         public override Task<AuthenticationState> GetAuthenticationStateAsync() => _authStateTask;
 
         public LoggedInUser User { get; private set; }
@@ -73,8 +74,9 @@ namespace BlazorQuiz.Web.Auth
                     return;
                 }
 
-                await SetLoginAsync(user);
-               
+                User = user;
+                SetAuthStateTask();
+                NotifyAuthenticationStateChanged(_authStateTask);
             }
             catch (Exception ex)
             {
@@ -90,7 +92,7 @@ namespace BlazorQuiz.Web.Auth
 
         private void RedirectToLogin()
         {
-           _navigationManager.NavigateTo("auth/login");
+            _navigationManager.NavigateTo("auth/login");
         }
 
         private static bool IsTokenValid(string token)
@@ -110,7 +112,7 @@ namespace BlazorQuiz.Web.Auth
             var expTime = long.Parse(expClaim.Value);
             var expDateTimeUtc = DateTimeOffset.FromUnixTimeSeconds(expTime).UtcDateTime;
 
-            return expDateTimeUtc > DateTime.Now;
+            return expDateTimeUtc > DateTime.UtcNow;
         }
 
         private void SetAuthStateTask()
