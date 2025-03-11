@@ -1,7 +1,8 @@
 using BlazorQuiz.Shared;
+using BlazorQuiz.Shared.Components.Auth;
 using BlazorQuiz.Web;
 using BlazorQuiz.Web.Apis;
-using BlazorQuiz.Web.Auth;
+using BlazorQuiz.Web.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -14,10 +15,10 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton<QuizAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<QuizAuthStateProvider>());
-
+builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthorizationCore();
 
-builder.Services.AddSingleton<IAppState, AppState>();
+builder.Services.AddSingleton<IAppState, BlazorQuiz.Web.AppState>().AddSingleton<IStorageService, StorageService>();
 builder.Services.AddSingleton<QuizState>();
 
 ConfigureRefit(builder.Services);

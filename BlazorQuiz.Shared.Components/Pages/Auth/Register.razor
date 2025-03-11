@@ -1,8 +1,8 @@
 ﻿@page "/auth/register"
 @layout EmptyLayout
 @inject IAuthApi AuthApi
-@using BlazorQuiz.Web.Auth
-@using BlazorQuiz.Shared
+
+
 @inject IAppState AppState
 @inject QuizAuthStateProvider QuizAuthStateProvider
 
@@ -12,25 +12,12 @@
 
 <div class="container">
     <div class="row vh-100">
-        <div class="col-sm-4 mx-auto my-auto border bg-white shadow-lg">
+        <div class="col-11 col-sm-4 mx-auto my-auto border bg-white shadow-lg">
             <div class="mt-3">
                 <h1 class="h3">
                     Register | Blazing Quiz
                 </h1>
             </div>
-            <AuthorizeView>
-                <Authorizing>
-                    <p> Authorizing....</p>
-                </Authorizing>
-                <NotAuthorized>
-                    <p>Not Authorized</p>
-                </NotAuthorized>
-                <Authorized>
-                    <p>
-                        Authorized : @context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
-                    </p>
-                </Authorized>
-            </AuthorizeView>
             <hr />
             <EditForm Model="_model" OnValidSubmit="RegisterAsync">
                 <DataAnnotationsValidator/>
@@ -98,7 +85,7 @@
 	{
 		if (QuizAuthStateProvider.IsLoggedIn)
 		{
-			NavigationManager.NavigateTo("/", replace:true);
+			 NavigationManager.NavigateTo("/", replace:true);
             
 		}
 	}

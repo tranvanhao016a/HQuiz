@@ -6,19 +6,21 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 
-namespace BlazorQuiz.Web.Auth
+namespace BlazorQuiz.Shared.Components.Auth
 {
     public class QuizAuthStateProvider : AuthenticationStateProvider
     {
         private const string AuthType = "quiz-auth";
         private const string UserDataKey = "udate";
         private Task<AuthenticationState> _authStateTask;
-        public IJSRuntime _jsRuntime;
+        //public IJSRuntime _jsRuntime;
+        private readonly IStorageService _storageService;
         private readonly NavigationManager _navigationManager;
 
-        public QuizAuthStateProvider(IJSRuntime jSRuntime, NavigationManager navigationManager)
+        public QuizAuthStateProvider(IStorageService storageService, NavigationManager navigationManager)
         {
-            _jsRuntime = jSRuntime;
+            
+            _storageService = storageService;
             _navigationManager = navigationManager;
             SetAuthStateTask();
         }
@@ -33,7 +35,7 @@ namespace BlazorQuiz.Web.Auth
             User = user;
             SetAuthStateTask();
             NotifyAuthenticationStateChanged(_authStateTask);
-            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", UserDataKey, user.ToJson());
+            await _storageService.SetItem(UserDataKey, user.ToJson());
         }
 
         public async Task SetLogoutAsync()
@@ -41,42 +43,59 @@ namespace BlazorQuiz.Web.Auth
             User = null;
             SetAuthStateTask();
             NotifyAuthenticationStateChanged(_authStateTask);
-            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", UserDataKey);
+            await _storageService.RemoveItem(UserDataKey);
         }
 
         public bool IsInitializing { get; private set; } = true;
         private bool _isInitialized = false;
 
+
         public async Task InitializeAsync()
         {
-            if (_isInitialized) return;
+            await InitializeAsync(redirectToLogin:true);
+        }
+
+        public async Task<bool> InitializeAsync(bool redirectToLogin = true)
+        {
+            
 
             try
             {
-                var udate = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", UserDataKey);
+                var udate = await _storageService.GetItem(UserDataKey);
                 if (string.IsNullOrWhiteSpace(udate))
                 {
-                    RedirectToLogin();
-                    return;
+                    if(redirectToLogin)
+                    {
+                        RedirectToLogin();
+                    }
+                    return false;
                 }
 
                 var user = LoggedInUser.LoadForm(udate);
                 if (user == null || user.Id == 0)
                 {
-                    RedirectToLogin();
-                    return;
+                    if (redirectToLogin)
+                    {
+                        RedirectToLogin();
+                    }
+                    return false;
                 }
 
                 // Check if JWT token is still valid
                 if (!IsTokenValid(user.Token))
                 {
-                    RedirectToLogin();
-                    return;
+                    if (redirectToLogin)
+                    {
+                        RedirectToLogin();
+                    }
+                    return false;
                 }
 
                 User = user;
                 SetAuthStateTask();
                 NotifyAuthenticationStateChanged(_authStateTask);
+                await SetLoginAsync(user);
+                return true;
             }
             catch (Exception ex)
             {
@@ -88,6 +107,7 @@ namespace BlazorQuiz.Web.Auth
                 _isInitialized = true;
                 Console.WriteLine("InitializeAsync completed");
             }
+            return false;
         }
 
         private void RedirectToLogin()

@@ -1,6 +1,8 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject QuizAuthStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">BlazorQuiz.Mobile</a>
+        <a class="navbar-brand" href="">BlazorQuiz</a>
     </div>
 </div>
 
@@ -8,20 +10,27 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+       <div class="nav-item px-3">
+            <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
-        </div>
+       </div>
+       <div class="nav-item px-3">
+             <NavLink class="nav-link" href="student/my-quizes">
+                  <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Quizes
+             </NavLink>
+       </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
+            <a role="button" class="nav-link" @onclick="Logout">
+                Logout
+            </a>
         </div>
     </nav>
 </div>
+@code{
+    private async Task Logout()
+    {
+        await AuthStateProvider.SetLogoutAsync();
+        NavigationManager.NavigateTo("auth/login", replace: true);
+    }
+}

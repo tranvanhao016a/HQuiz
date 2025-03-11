@@ -1,6 +1,17 @@
-﻿<Router AppAssembly="@typeof(MauiProgram).Assembly">
+﻿@using BlazorQuiz.Shared.Components.Auth
+
+<Router AppAssembly="@typeof(MauiProgram).Assembly" AdditionalAssemblies="new []{typeof(BlazorQuiz.Shared.Components.Auth.QuizAuthStateProvider).Assembly}">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
 </Router>
+<Loader/>
+
+@* @inject QuizAuthStateProvider QuizAuthStateProvider *@
+@* @code { *@
+@*     protected override async Task OnInitializedAsync() *@
+@*     { *@
+@*         await QuizAuthStateProvider.InitializeAsync(); *@
+@*     } *@
+@* } *@

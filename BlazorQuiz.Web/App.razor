@@ -1,5 +1,6 @@
-﻿<CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly">
+﻿@using BlazorQuiz.Shared.Components.Auth
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="new []{typeof(BlazorQuiz.Shared.Components.Auth.QuizAuthStateProvider).Assembly}">
         <Found Context="routeData">
             <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />

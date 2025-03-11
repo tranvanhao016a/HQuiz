@@ -1,6 +1,7 @@
 ﻿@inject QuizAuthStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
 @using BlazorQuiz.Shared
+@using BlazorQuiz.Shared.Components.Auth
 @using Microsoft.AspNetCore.Components.Authorization
 
 @if (!AuthStateProvider.IsInitializing)
@@ -51,10 +52,10 @@
                     <AuthorizeView Roles="@(nameof(UserRole.Student))">
                         <Authorized Context="studentContext">
                             <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
-                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-                        </NavLink>
-                    </div>
+                                <NavLink class="nav-link" href="student/home" Match="NavLinkMatch.All">
+                                     <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                                </NavLink>
+                            </div>
                             <div class="nav-item px-3">
                                 <NavLink class="nav-link" href="student/my-quizes">
                                     <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> My Quizes
